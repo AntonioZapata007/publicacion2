@@ -9,31 +9,35 @@
 
         <div class="row d-flex justify-content-center">
             <div class="col-8 b-3">
-                <input type="search" class="form-control form-control-lg" placeholder="Buscar...">
+                <input type="search" class="form-control form-control-lg" placeholder="Buscar..." v-model="search" @change="buscar()" >
 
                 
                 <!--introducimos el card-->
-                <div class="col-12 col-lg-6">
+                <div class="col-12 col-lg-6 mt-3" v-for="item in datos" :key="item.id">
                     <div class="card mb-3 rounded-5 bg-black" >
                     <div class="row g-0">
                         <div class="col-12 col-md-4">
-                            <img src="https://rickandmortyapi.com/api/character/avatar/70.jpeg" class="rounded-5" width="100%" height="100%" alt="...">
+                            <img :src="item.image" class="rounded-5" width="100%" height="100%" alt="item.name">
                         </div>
                         <div class="col-12 col-md-8">
                             <div class="card-body text-white">
-                                <h4 class="card-title">Concerto</h4>
+                                <h4 class="card-title">{{ item.name }}</h4>
                                 <p class="card-text">
-                                🔴Dead Humanoid
+                                {{ item.status== "Alive"?'🟢': (item.status=="Dead"?'🔴':'⚪')   }} {{ item.status }} {{ item.species }}
                                 </p>
                                 <span class="text-danger"><b>Last known location:</b></span>
-                                <p>Unknown</p>
+                                <p>{{ item.location.name }}</p>
                                 <span class="text-danger"><b>Origin:</b></span>
-                                <p>Pickle Rick</p>
+                                <p>{{ item.origin.name }}</p>
                                 
                             </div>
                         </div>
                     </div>
                 </div>
+                </div>
+
+                <div class="col-12 text-center">
+                    <button type="button" class="btn btn-primary" @click="cargarMas">CARGAR</button>
                 </div>
                 
             </div>
@@ -49,11 +53,66 @@
 
 
 </template>
- <script>
- export default {
-    
- }
+
+ <script setup>
+ import axios from 'axios';
+ import { onMounted, ref } from 'vue';
+    const datos = ref([]);
+    const paginacion = ref({
+        total:null,
+        pagina: 1,
+    });
+    const search = ref('')
+    onMounted(() =>{
+        window.addEventListener('scroll', cargarMas)
+        listar()
+    })
+    const listar = async () =>{
+        try {
+            const {data} = await axios.get(`https://rickandmortyapi.com/api/character?page=${paginacion.value.pagina}&name=${search.value} `)
+            console.log(data)
+            datos.value.push(...data.results)
+            paginacion.value.total = data.info.pages;
+            console.log(datos.value)
+            
+        } catch (error) {
+            console.log(error);
+        }
+    }
+    const cargarMas =() =>{
+        if(paginacion.value.total = paginacion.value.pagina){
+            if(window.innerHeight + window.scrollY >= document.documentElement.scrollHeight){
+                paginacion.value.pagina ++;
+                listar()
+
+            }
+        }
+
+
+        
+
+        
+
+    }
+    const buscar = ()=>{
+        datos.value = [];
+        paginacion.value.pagina = 1;
+        listar()
+
+    }
+
+ 
  </script>
  <style>
+    .fondo{
+        background-color: #353535;
+    }
+    .texto{
+        color:#9e9e9e;
+    }
+    principal{
+        background-color: #202329;
+        height: 100vh;
+    }
     
  </style>
